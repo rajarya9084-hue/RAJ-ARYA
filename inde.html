@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HeatSafe AI — Heatwave &amp; Thermal Stress Prediction</title>
+  <meta name="description" content="AI-powered heatwave and thermal stress early-warning dashboard for Nabha, Punjab.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="siteHeader">
+    <div class="header-inner">
+      <a href="#dashboard" class="brand">
+        <span class="brand-mark">🔥</span>
+        <span class="brand-text">
+          <strong>HeatSafe AI</strong>
+          <small>Heatwave &amp; Thermal Stress Prediction</small>
+        </span>
+      </a>
+
+      <nav class="main-nav" id="mainNav">
+        <a href="#dashboard" class="nav-link active">Dashboard</a>
+        <a href="#prediction" class="nav-link">Prediction</a>
+        <a href="#heatmap" class="nav-link">Heat Map</a>
+        <a href="#alerts" class="nav-link">Alerts</a>
+        <a href="#safety" class="nav-link">Safety</a>
+        <a href="#assistant" class="nav-link">AI Assistant</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="location-pill" id="locationBtn" aria-haspopup="listbox" aria-label="Change location">
+          <i class="fa-solid fa-location-dot"></i>
+          <span id="currentLocationLabel">Nabha, Punjab</span>
+          <i class="fa-solid fa-chevron-down chev"></i>
+        </button>
+        <ul class="location-dropdown" id="locationDropdown" role="listbox" hidden></ul>
+
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notif-dot" id="notifDot" hidden></span>
+        </button>
+
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle dark or light theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <button class="icon-btn hamburger" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="mode-strip">
+      <span class="mode-tag" id="modeTag"><i class="fa-solid fa-flask"></i> DEMO DATA — live weather feed not
+        connected</span>
+    </div>
+  </header>
+
+  <!-- Mobile nav panel -->
+  <div class="mobile-nav" id="mobileNav" hidden>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#prediction">Prediction</a>
+    <a href="#heatmap">Heat Map</a>
+    <a href="#alerts">Alerts</a>
+    <a href="#safety">Safety</a>
+    <a href="#assistant">AI Assistant</a>
+  </div>
+
+  <main id="dashboard">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="hero-haze" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1>Stay safe. Predict heat.<br>Protect lives.</h1>
+          <p class="hero-sub">AI-powered heatwave and thermal-stress monitoring for smarter, safer communities across
+            Punjab.</p>
+          <div class="hero-meta">
+            <div><i class="fa-solid fa-location-dot"></i> Nabha, Punjab, India</div>
+            <div><i class="fa-regular fa-calendar"></i> <span id="heroDate">—</span></div>
+            <div><i class="fa-regular fa-clock"></i> Last updated <span id="heroUpdated">—</span></div>
+          </div>
+          <button class="btn btn-primary" id="checkRiskBtn">Check heat risk <i
+              class="fa-solid fa-arrow-right-long"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CURRENT RISK + WEATHER OVERVIEW ============ -->
+    <section class="section" id="riskSection">
+      <div class="grid-risk">
+
+        <!-- Risk card -->
+        <article class="card risk-card" id="riskCard">
+          <div class="risk-card-head">
+            <h2>Current heat risk</h2>
+            <span class="risk-badge" id="riskBadge">—</span>
+          </div>
+
+          <div class="risk-gauge-wrap">
+            <svg viewBox="0 0 220 220" class="risk-gauge" aria-hidden="true">
+              <circle cx="110" cy="110" r="92" class="gauge-track"></circle>
+              <circle cx="110" cy="110" r="92" class="gauge-fill" id="gaugeFill"></circle>
+            </svg>
+            <div class="gauge-center">
+              <span class="gauge-score" id="riskScoreNum">0</span>
+              <span class="gauge-max">/ 100</span>
+              <span class="gauge-label">Thermal Stress Score</span>
+            </div>
+          </div>
+
+          <div class="risk-stats">
+            <div class="risk-stat">
+              <span class="rs-label">Heatwave probability</span>
+              <span class="rs-value" id="statHeatwaveProb">—</span>
+            </div>
+            <div class="risk-stat">
+              <span class="rs-label">Heat index</span>
+              <span class="rs-value" id="statHeatIndex">—</span>
+            </div>
+            <div class="risk-stat">
+              <span class="rs-label">Risk status</span>
+              <span class="rs-value" id="statRiskStatus">—</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Weather overview -->
+        <div class="weather-grid" id="weatherGrid">
+          <article class="card weather-card">
+            <i class="fa-solid fa-temperature-three-quarters w-icon"></i>
+            <span class="w-value" id="wTemp">—</span>
+            <span class="w-sub" id="wFeelsLike">Feels like —</span>
+          </article>
+          <article class="card weather-card">
+            <i class="fa-solid fa-droplet w-icon"></i>
+            <span class="w-value" id="wHumidity">—</span>
+            <span class="w-sub">Relative humidity</span>
+          </article>
+          <article class="card weather-card">
+            <i class="fa-solid fa-wind w-icon"></i>
+            <span class="w-value" id="wWind">—</span>
+            <span class="w-sub" id="wWindNote">Cooling effect</span>
+          </article>
+          <article class="card weather-card">
+            <i class="fa-solid fa-sun w-icon"></i>
+            <span class="w-value" id="wSolar">—</span>
+            <span class="w-sub" id="wSolarNote">Solar radiation</span>
+          </article>
+          <article class="card weather-card">
+            <i class="fa-solid fa-water w-icon"></i>
+            <span class="w-value" id="wDew">—</span>
+            <span class="w-sub">Dew point</span>
+          </article>
+          <article class="card weather-card">
+            <i class="fa-solid fa-cloud-rain w-icon"></i>
+            <span class="w-value" id="wRain">—</span>
+            <span class="w-sub">Rainfall (24h)</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THERMAL STRESS ANALYSIS ============ -->
+    <section class="section">
+      <div class="card analysis-card">
+        <div class="analysis-head">
+          <h2>Thermal stress factors</h2>
+          <button class="btn btn-ghost" id="explainBtn"><i class="fa-solid fa-circle-info"></i> Explain
+            prediction</button>
+        </div>
+        <div class="factor-list" id="factorList"><!-- populated by JS --></div>
+        <div class="analysis-score">
+          Overall thermal stress score:
+          <strong id="analysisScore">—</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PREDICTION ============ -->
+    <section class="section" id="prediction">
+      <div class="card">
+        <div class="analysis-head">
+          <h2>Heatwave prediction</h2>
+          <div class="range-toggle" id="rangeToggle" role="tablist">
+            <button class="range-btn active" data-hours="24" role="tab">24 hours</button>
+            <button class="range-btn" data-hours="48" role="tab">48 hours</button>
+            <button class="range-btn" data-hours="72" role="tab">72 hours</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="predictionChart" height="110"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HEAT MAP ============ -->
+    <section class="section" id="heatmap">
+      <div class="card">
+       <div class="analysis-head">
+    <h2>Regional heat risk map</h2>
+
+    <button class="btn btn-primary" id="myLocationBtn">
+        <i class="fa-solid fa-location-crosshairs"></i>
+        My Location
+    </button>
+
+    <span class="legend">
+        <span class="dot dot-low"></span> Low
+        <span class="dot dot-moderate"></span> Moderate
+        <span class="dot dot-high"></span> High
+        <span class="dot dot-extreme"></span> Extreme
+    </span>
+</div>
+
+<div id="locationStatus"></div>
+
+<div id="heatMap" class="heat-map"></div>
+    </section>
+
+    <!-- ============ EARLY WARNING ============ -->
+    <section class="section" id="alerts">
+      <article class="alert-banner" id="alertBanner">
+        <div class="alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="alert-body">
+          <h2 id="alertTitle">Extreme heat alert</h2>
+          <p id="alertText">Extreme thermal stress conditions are expected between 12 PM and 4 PM.</p>
+          <div class="alert-meta">
+            <span>Heatwave probability: <strong id="alertProb">—</strong></span>
+            <span>Peak risk: <strong id="alertPeak">—</strong></span>
+          </div>
+        </div>
+        <button class="btn btn-light" id="viewSafetyBtn">View safety instructions</button>
+      </article>
+    </section>
+
+    <!-- ============ PERSONALIZED SAFETY ============ -->
+    <section class="section" id="safety">
+      <h2 class="section-title">Who are you?</h2>
+      <p class="section-sub">Select your profile to see recommendations tailored to your exposure.</p>
+
+      <div class="profile-row" id="profileRow">
+        <button class="profile-chip active" data-profile="student"><i class="fa-solid fa-graduation-cap"></i>
+          Student</button>
+        <button class="profile-chip" data-profile="farmer"><i class="fa-solid fa-tractor"></i> Farmer</button>
+        <button class="profile-chip" data-profile="worker"><i class="fa-solid fa-helmet-safety"></i> Outdoor
+          worker</button>
+        <button class="profile-chip" data-profile="elderly"><i class="fa-solid fa-person-cane"></i> Elderly</button>
+        <button class="profile-chip" data-profile="athlete"><i class="fa-solid fa-person-running"></i> Athlete</button>
+        <button class="profile-chip" data-profile="general"><i class="fa-solid fa-people-group"></i> General
+          public</button>
+      </div>
+
+      <div class="card recommend-card" id="recommendCard"><!-- populated by JS --></div>
+    </section>
+
+    <!-- ============ AI ASSISTANT ============ -->
+    <section class="section" id="assistant">
+      <div class="card assistant-card">
+        <div class="assistant-head">
+          <span class="assistant-avatar">🤖</span>
+          <div>
+            <h2>HeatSafe AI Assistant</h2>
+            <p>Ask me about today's heat conditions</p>
+          </div>
+        </div>
+
+        <div class="quick-questions" id="quickQuestions">
+          <button>Is it safe to go outside?</button>
+          <button>What is today's heat risk?</button>
+          <button>How can I avoid heat stress?</button>
+          <button>Can I exercise today?</button>
+          <button>Why is the risk so high?</button>
+        </div>
+
+        <div class="chat-window" id="chatWindow" aria-live="polite"></div>
+
+        <form class="chat-input-row" id="chatForm">
+          <label for="chatInput" class="sr-only">Type your question</label>
+          <input type="text" id="chatInput" placeholder="Type your question..." autocomplete="off">
+          <button type="submit" class="btn btn-primary" aria-label="Send"><i
+              class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ WHY HEATSAFE AI ============ -->
+    <section class="section">
+      <h2 class="section-title">Why HeatSafe AI?</h2>
+      <div class="why-grid">
+        <article class="card why-card">
+          <i class="fa-solid fa-brain"></i>
+          <h3>Predict</h3>
+          <p>AI predicts upcoming heatwave and thermal stress before conditions become dangerous.</p>
+        </article>
+        <article class="card why-card">
+          <i class="fa-solid fa-shield-heart"></i>
+          <h3>Protect</h3>
+          <p>Personalized recommendations help students, farmers, workers and the elderly stay safe.</p>
+        </article>
+        <article class="card why-card">
+          <i class="fa-solid fa-bell"></i>
+          <h3>Alert</h3>
+          <p>Early warnings deliver actionable information before extreme heat peaks arrive.</p>
+        </article>
+      </div>
+
+      <div class="flow-diagram" aria-hidden="true">
+        <span>Weather data</span>
+        <i class="fa-solid fa-arrow-down"></i>
+        <span>AI / ML</span>
+        <i class="fa-solid fa-arrow-down"></i>
+        <span>Risk prediction</span>
+        <i class="fa-solid fa-arrow-down"></i>
+        <span>Early warning</span>
+        <i class="fa-solid fa-arrow-down"></i>
+        <span>Action</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Explain prediction modal -->
+  <div class="modal-overlay" id="explainModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="explainModalTitle">
+      <button class="modal-close" id="explainModalClose" aria-label="Close">&times;</button>
+      <h3 id="explainModalTitle">Why is this prediction so high?</h3>
+      <div id="explainModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Safety instructions modal -->
+  <div class="modal-overlay" id="safetyModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="safetyModalTitle">
+      <button class="modal-close" id="safetyModalClose" aria-label="Close">&times;</button>
+      <h3 id="safetyModalTitle">Safety instructions</h3>
+      <ul id="safetyModalBody" class="modal-list"></ul>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark">🔥</span>
+        <div>
+          <strong>HeatSafe AI</strong>
+          <p>AI-powered heatwave &amp; thermal stress prediction and early-warning system.<br>Built for Hackathon 2026.
+          </p>
+        </div>
+      </div>
+      <nav class="footer-links">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#prediction">Prediction</a>
+        <a href="#heatmap">Heat Map</a>
+        <a href="#safety">Safety</a>
+        <a href="#assistant">AI Assistant</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
